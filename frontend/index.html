@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ICPC — Database Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="brand">⟨ ICPC ⟩</div>
+      <div class="sub">Database Manager</div>
+    </div>
+
+    <div class="role-selector">
+      <button class="role-btn active" data-role="admin" id="btn-role-admin">
+        🔐 Administrador
+      </button>
+      <button class="role-btn" data-role="user" id="btn-role-user">
+        👤 Usuario
+      </button>
+    </div>
+
+    <div class="config-section">
+      <h4>🔌 Conexión al Backend</h4>
+      <div class="config-grid">
+        <div class="login-field">
+          <label>Host</label>
+          <input type="text" id="api-host" value="localhost" />
+        </div>
+        <div class="login-field">
+          <label>Puerto API</label>
+          <input type="text" id="api-port" value="3001" />
+        </div>
+      </div>
+    </div>
+
+    <div class="login-field">
+      <label>Contraseña de acceso</label>
+      <input type="password" id="app-pass" placeholder="admin123 o user123" />
+    </div>
+
+    <button class="login-btn" id="login-btn">Conectar →</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════ -->
+<div id="app" class="hidden">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-brand">⟨ ICPC ⟩ <span id="header-db-name"></span></div>
+
+    <nav class="header-tabs">
+      <button class="tab-btn active" data-panel="tables">🗄️ Tablas</button>
+      <button class="tab-btn" data-panel="register">➕ Registrar Participante</button>
+      <button class="tab-btn admin-only hidden" data-panel="manage">✏️ Gestionar</button>
+      <button class="tab-btn" data-panel="schema">📐 Esquema</button>
+      <button class="tab-btn" data-panel="dashboard">📊 Dashboard</button>
+    </nav>
+
+    <div class="header-right">
+      <span class="role-badge" id="role-badge"></span>
+      <span class="conn-info" id="conn-info"></span>
+      <button class="logout-btn" id="logout-btn">Salir</button>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div class="main-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Tablas</div>
+        <div id="sidebar-tables">
+          <div class="sidebar-loading">Cargando…</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+      <!-- PANEL: TABLES -->
+      <section class="panel active" id="panel-tables">
+        <div class="table-header">
+          <div class="table-title" id="current-table-title">
+            Selecciona una tabla
+          </div>
+          <div class="table-actions" id="table-actions"></div>
+        </div>
+
+        <div class="readonly-notice hidden" id="readonly-notice">
+          🔒 Modo solo lectura — inicia sesión como Administrador para modificar datos.
+        </div>
+
+        <div class="table-toolbar hidden" id="table-toolbar">
+          <input type="text" class="search-box" id="search-box" placeholder="🔍 Buscar en tabla…" />
+          <span class="filter-info" id="filter-info"></span>
+        </div>
+
+        <div id="table-container">
+          <div class="empty-state">
+            <div class="empty-icon">🗄️</div>
+            <div>Selecciona una tabla del menú lateral</div>
+          </div>
+        </div>
+
+        <div class="pagination hidden" id="pagination">
+          <button class="pg-btn" id="pg-prev">← Anterior</button>
+          <span id="pg-label"></span>
+          <button class="pg-btn" id="pg-next">Siguiente →</button>
+          <span id="pg-total" class="pg-total"></span>
+        </div>
+      </section>
+
+      <!-- PANEL: REGISTRAR PARTICIPANTE -->
+      <section class="panel hidden" id="panel-register">
+        <div class="panel-heading">
+          <div class="panel-title">➕ Registrar Participante</div>
+          <div class="panel-sub">Completa el formulario para inscribir un nuevo participante y su equipo</div>
+        </div>
+
+        <div class="register-layout">
+          <!-- Formulario principal -->
+          <div class="register-card">
+            <div class="register-section-title">👤 Datos del Participante</div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Nombre completo <span class="required">*</span></label>
+                <input class="form-input" id="reg-nombre" type="text" placeholder="Ej. Ana García López" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Correo electrónico <span class="required">*</span></label>
+                <input class="form-input" id="reg-correo" type="email" placeholder="correo@universidad.mx" />
+              </div>
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-group">
+                <label class="form-label">Edad <span class="required">*</span></label>
+                <input class="form-input" id="reg-edad" type="number" min="14" max="99" placeholder="20" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Rol en el equipo <span class="required">*</span></label>
+                <select class="form-input" id="reg-rol">
+                  <option value="">— Selecciona —</option>
+                  <option value="Líder">Líder</option>
+                  <option value="Programador">Programador</option>
+                  <option value="Analista">Analista</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fecha inicio <span class="required">*</span></label>
+                <input class="form-input" id="reg-fecha-inicio" type="date" />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Fecha fin</label>
+                <input class="form-input" id="reg-fecha-fin" type="date" />
+              </div>
+            </div>
+
+            <div class="register-section-title" style="margin-top:28px">🏆 Equipo</div>
+
+            <div class="team-toggle-row">
+              <button class="team-toggle-btn active" id="toggle-existing">Equipo existente</button>
+              <button class="team-toggle-btn" id="toggle-new">Crear equipo nuevo</button>
+            </div>
+
+            <!-- Equipo existente -->
+            <div id="team-existing">
+              <div class="form-group">
+                <label class="form-label">Selecciona el equipo <span class="required">*</span></label>
+                <select class="form-input" id="reg-equipo-existing">
+                  <option value="">Cargando equipos…</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Equipo nuevo (oculto por defecto) -->
+            <div id="team-new" class="hidden">
+              <div class="form-group">
+                <label class="form-label">Nombre del nuevo equipo <span class="required">*</span></label>
+                <input class="form-input" id="reg-equipo-nuevo" type="text" placeholder="Ej. UNAM Coders" />
+              </div>
+              <div class="new-team-notice">
+                ℹ️ Se creará un nuevo equipo en la tabla <code>Equipo</code> y se asignará al participante automáticamente.
+              </div>
+            </div>
+
+            <div class="register-actions">
+              <button class="btn btn-ghost" id="reg-clear-btn">🗑 Limpiar</button>
+              <button class="btn btn-primary" id="reg-submit-btn">✅ Registrar Participante</button>
+            </div>
+
+            <div id="reg-feedback" class="reg-feedback hidden"></div>
+          </div>
+
+          <!-- Panel lateral: últimos registros -->
+          <div class="register-sidebar">
+            <div class="register-section-title">🕐 Últimos registros</div>
+            <div id="reg-recent-list">
+              <div style="color:var(--text3);font-size:13px">Sin registros aún en esta sesión</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL: GESTIONAR (solo admin) -->
+      <section class="panel hidden" id="panel-manage">
+        <div class="panel-heading">
+          <div class="panel-title">✏️ Gestionar Fechas y Problemas</div>
+          <div class="panel-sub">Edita, agrega o elimina fechas de competencia y problemas registrados</div>
+        </div>
+
+        <div class="manage-tabs">
+          <button class="manage-tab active" data-manage="fechas">📅 Fechas</button>
+          <button class="manage-tab" data-manage="problemas">🧩 Problemas</button>
+        </div>
+
+        <!-- SUB: FECHAS -->
+        <div id="manage-fechas">
+          <div class="manage-toolbar">
+            <span class="manage-count" id="fechas-count"></span>
+            <button class="btn btn-primary" id="btn-add-fecha">+ Nueva fecha</button>
+          </div>
+          <div id="fechas-table-container"><div class="sidebar-loading">Cargando…</div></div>
+        </div>
+
+        <!-- SUB: PROBLEMAS -->
+        <div id="manage-problemas" class="hidden">
+          <div class="manage-toolbar">
+            <span class="manage-count" id="problemas-count"></span>
+            <button class="btn btn-primary" id="btn-add-problema">+ Nuevo problema</button>
+          </div>
+          <div id="problemas-table-container"><div class="sidebar-loading">Cargando…</div></div>
+        </div>
+      </section>
+
+      <!-- PANEL: SCHEMA -->
+      <section class="panel hidden" id="panel-schema">
+        <div class="panel-heading">
+          <div class="panel-title">Esquema de Base de Datos</div>
+          <div class="panel-sub">Estructura real de las tablas en MySQL</div>
+        </div>
+        <div class="schema-grid" id="schema-grid">
+          <div class="sidebar-loading">Cargando esquema…</div>
+        </div>
+      </section>
+
+      <!-- PANEL: DASHBOARD -->
+      <section class="panel hidden" id="panel-dashboard">
+        <div class="panel-heading">
+          <div class="panel-title">Dashboard ICPC</div>
+          <div class="panel-sub">Resumen estadístico de la competencia</div>
+        </div>
+        <div class="stats-grid" id="stats-grid">
+          <div class="sidebar-loading">Cargando estadísticas…</div>
+        </div>
+        <div class="dash-queries" id="dash-queries"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL
+═══════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Registro</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="modal-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden">
+  <div class="toast-inner" id="toast-inner"></div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/tables.js"></script>
+<script src="js/register.js"></script>
+<script src="js/manage.js"></script>
+<script src="js/schema.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
